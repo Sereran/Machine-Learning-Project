@@ -19,3 +19,6 @@
 * crearea trăsăturilor complexe (date despre timp, statistici per coș) și normalizarea datelor;
 * extinderea modelului pentru toate sosurile și implementarea logicii de recomandare (Top-K);
 * implementarea algoritmului de ranking pentru produse (calculul scorului de probabilitate vs. preț).
+
+**3. Burcă Sabrina-Valentina + Ilade Maria**
+* întocmirea documentației (fișierul LaTeX).
