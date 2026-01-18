@@ -1,7 +1,21 @@
 import pandas as pd
 import numpy as np
+import os
 
-def load_and_process_data(filepath):
+def get_data_path():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    file_path = os.path.join(parent_dir, 'ap_dataset.csv')
+    return file_path
+
+def load_and_process_data(filepath=None):
+    if filepath is None:
+        filepath = get_data_path()
+        
+    if not os.path.exists(filepath):
+        print(f"Error file not found at {filepath}")
+        return None
+        
     df = pd.read_csv(filepath)
 
     df['data_bon'] = pd.to_datetime(df['data_bon'])

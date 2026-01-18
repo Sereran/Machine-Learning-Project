@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, roc_curve
 from preprocessing import load_and_process_data, create_basket_dataset
@@ -10,6 +11,8 @@ from models import CustomLogisticRegression
 sns.set_theme(style="whitegrid")
 
 def plot_model_performance(y_test, y_prob, y_pred, feature_names, weights):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
     plt.figure(figsize=(6, 5))
     cm = confusion_matrix(y_test, y_pred)
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
@@ -17,7 +20,11 @@ def plot_model_performance(y_test, y_prob, y_pred, feature_names, weights):
     plt.xlabel('Predicted Label')
     plt.ylabel('Actual Label')
     plt.tight_layout()
-    plt.savefig('confusion_matrix.png')
+
+    save_path = os.path.join(script_dir, 'confusion_matrix.png')
+
+    plt.savefig(save_path)
+    print(f"Saved in {save_path}")
     plt.close()
 
     try:
@@ -34,7 +41,9 @@ def plot_model_performance(y_test, y_prob, y_pred, feature_names, weights):
         plt.title('Receiver Operating Characteristic (ROC)')
         plt.legend(loc="lower right")
         plt.tight_layout()
-        plt.savefig('roc_curve.png')
+
+        save_path = os.path.join(script_dir, 'roc_curve.png')
+        plt.savefig(save_path)
         plt.close()
     except Exception as e:
         print(f"Could not generate ROC curve {e}")
@@ -47,7 +56,9 @@ def plot_model_performance(y_test, y_prob, y_pred, feature_names, weights):
     plt.title('Top factors influencing purchase')
     plt.xlabel('Weight coefficient')
     plt.tight_layout()
-    plt.savefig('feature_importance.png')
+
+    save_path = os.path.join(script_dir, 'feature_importance.png')
+    plt.savefig(save_path)
     plt.close()
 
 def run_task_2_1(data):
@@ -82,9 +93,7 @@ def run_task_2_1(data):
     y_pred = clf.predict(X_test)
     y_prob = clf.predict_prob(X_test)
 
-    print("\n" + "="*40)
     print("MODEL EVALUATION RESULTS")
-    print("="*40)
     print(f"Accuracy   {accuracy_score(y_test, y_pred):.4f}")
     print(f"Precision  {precision_score(y_test, y_pred, zero_division=0):.4f}")
     print(f"Recall     {recall_score(y_test, y_pred, zero_division=0):.4f}")
@@ -98,9 +107,7 @@ def run_task_2_1(data):
 #BASELINE
 
     baseline_acc = max(y_test.mean(), 1 - y_test.mean())
-    print("-" * 40)
     print(f"Baseline accuracy {baseline_acc:.4f}")
-    print("-" * 40)
 
     if accuracy_score(y_test, y_pred) > baseline_acc:
         print("Our model is better")
@@ -124,10 +131,13 @@ def run_task_2_1(data):
 
 if __name__ == "__main__":
     try:
-        df_raw = load_and_process_data('ap_dataset.csv')
-        df_basket = create_basket_dataset(df_raw)
-        
-        run_task_2_1(df_basket)
+        df_raw = load_and_process_data()
+
+        if df_raw is not None:
+            df_basket = create_basket_dataset(df_raw)
+            run_task_2_1(df_basket)
+        else:
+            print("Could not load data")
         
     except FileNotFoundError:
         print("Error file not found")

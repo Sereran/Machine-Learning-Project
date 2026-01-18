@@ -2,14 +2,21 @@ import pandas as pd
 import numpy as np
 import os
 
+def get_data_path():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    file_path = os.path.join(parent_dir, 'ap_dataset.csv')
+    return file_path
 
-def get_data(file_path='../RestaurantData/ap_dataset.csv'):
-    if not os.path.exists(file_path):
-        print(f"Error: Could not find file at {file_path}")
+def get_data(filepath=None):
+    if filepath is None:
+        filepath = get_data_path()
+        
+    if not os.path.exists(filepath):
+        print(f"Error file not found at {filepath}")
         return None
-
-    print(f"Loading data from: {file_path}")
-    df = pd.read_csv(file_path)
+        
+    df = pd.read_csv(filepath)
 
     df['data_bon'] = pd.to_datetime(df['data_bon'])
     df['day_of_week'] = df['data_bon'].dt.dayofweek + 1
