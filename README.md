@@ -1,6 +1,3 @@
-"# Machine-Learning-Project" 
-
-
 ##  Rulare
 
 1. LR1/final.py
