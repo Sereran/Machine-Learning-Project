@@ -24,7 +24,7 @@ def main():
 
     # Train Naive Bayes Models (One per product)
     print("Training Naive Bayes models...")
-    feature_cols = ['day_of_week', 'is_weekend', 'hour']
+    feature_cols = ['day_of_week', 'is_weekend', 'hour'] + [c for c in candidate_products]
     X = df[feature_cols]
 
     nb_models = {}
@@ -56,7 +56,12 @@ def main():
 
         hidden_item = np.random.choice(actual_items)
 
-        context = pd.DataFrame([row[feature_cols]])
+        context_series = row[feature_cols].copy()
+        if hidden_item in context_series.index:
+            context_series[hidden_item] = 0
+
+        # Create the DataFrame for prediction
+        context = pd.DataFrame([context_series])
 
         scores = []
         for product, model in nb_models.items():

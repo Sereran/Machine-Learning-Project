@@ -33,12 +33,19 @@ def main():
     train_df = df[mask]
     test_df = df[~mask]
 
-    X_train = train_df[feature_cols].values
-    X_test = test_df[feature_cols].values
+    mean = train_df[feature_cols].mean()
+    std = train_df[feature_cols].std()
+
+    std = std.replace(0, 1)
+
+    # Apply Z-score formula: (X - mean) / std
+    X_train = ((train_df[feature_cols] - mean) / std).values
+    X_test = ((test_df[feature_cols] - mean) / std).values
 
     # Train 8 Models (one per sauce)
     models = {}
     print("\n Starting Training:")
+
     for sauce_name in available_sauces:
         print(f"\n Training model for: {sauce_name}...")
 
@@ -48,40 +55,50 @@ def main():
         clf = LogisticRegressionScratch(learning_rate=0.1, n_iterations=1000)
         clf.fit(X_train, y_train)
 
+        weights = clf.weights
+
+        feature_importance = pd.Series(weights, index=feature_cols).sort_values(ascending=False)
+        print(f"  -> Top positive factors: {feature_importance.head(3).index.tolist()}")
+        print(f"  -> Top negative factors: {feature_importance.tail(3).index.tolist()}")
+
         models[sauce_name] = clf
 
         k_values = [1, 3, 5]
-        print(f" Evaluation:")
 
-        all_probs = {}
-        for sauce_name, model in models.items():
-            all_probs[sauce_name] = model.predict_proba(X_test)
+    print(f" Evaluation:")
 
-        probs_df = pd.DataFrame(all_probs, index=test_df.index)
+    all_probs = {}
 
-        for k in k_values:
-            hits = 0
-            total_valid_cases = 0
+    for sauce_name, model in models.items():
+        all_probs[sauce_name] = model.predict_proba(X_test)
 
-            for idx in probs_df.index:
-                actual_row = test_df.loc[idx]
-                real_sauces = [s for s in available_sauces if actual_row[s] == 1]
+    probs_df = pd.DataFrame(all_probs, index=test_df.index)
 
-                if len(real_sauces) == 0:
-                    continue
+    for k in k_values:
+        hits = 0
+        total_valid_cases = 0
 
-                total_valid_cases += 1
+        for idx in probs_df.index:
+            actual_row = test_df.loc[idx]
+            real_sauces = [s for s in available_sauces if actual_row[s] == 1]
 
-                # Get recommendations
-                pred_row = probs_df.loc[idx]
-                recommendations = pred_row.sort_values(ascending=False).head(k).index.tolist()
+            if len(real_sauces) == 0:
+                continue
 
-                if any(s in recommendations for s in real_sauces):
-                    hits += 1
+            total_valid_cases += 1
 
-            if total_valid_cases > 0:
-                score = hits / total_valid_cases
-                print(f"Hit@{k}: {score:.4f} ({score * 100:.2f}%)")
+            # Get recommendations
+            pred_row = probs_df.loc[idx]
+            recommendations = pred_row.sort_values(ascending=False).head(k).index.tolist()
+
+            if any(s in recommendations for s in real_sauces):
+                hits += 1
+
+        if total_valid_cases > 0:
+            score = hits / total_valid_cases
+            print(f"Hit@{k}: {score:.4f} ({score * 100:.2f}%)")
+        else:
+            print(f"Hit@{k}: N/A (No valid test cases with sauces)")
 
 
 if __name__ == "__main__":

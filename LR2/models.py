@@ -8,6 +8,9 @@ class LogisticRegressionScratch:
         self.weights = None
         self.bias = None
 
+    def get_coeffs(self):
+        return self.weights
+
     def _sigmoid(self, z):
         # Maps any number to a probability between 0 and 1
         z = np.clip(z, -250, 250)
